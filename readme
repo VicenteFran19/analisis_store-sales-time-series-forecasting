@@ -1,3 +1,12 @@
+Store Sales - Time Series Forecasting - Data
+https://www.kaggle.com/competitions/store-sales-time-series-forecasting/data
+
+Utility
+https://www.kaggle.com/code/beezus666/utility
+
+Modelo
+https://www.kaggle.com/code/beezus666/store-sales-getting-started#LGBM-model
+
 Importación de librerías
 -------------------------------------------------------------------
 import lightgbm as lgb
