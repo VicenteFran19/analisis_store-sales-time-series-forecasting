@@ -1,4 +1,5 @@
 Importación de librerías
+-------------------------------------------------------------------
 import lightgbm as lgb
 from lightgbm.callback import early_stopping
 import numpy as np
@@ -15,6 +16,7 @@ import warnings
 warnings.filterwarnings('ignore')
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 from IPython.display import display_html
+-------------------------------------------------------------------
 1.	import lightgbm as lgb: Importa la librería LightGBM (Light Gradient Boosting Machine) que se usa para crear modelos de machine learning basados en árboles de decisión.
 2.	from lightgbm.callback import early_stopping: Importa la función early_stopping de LightGBM, que se usa para evitar sobreajuste deteniendo el entrenamiento si el modelo no mejora después de un número de rondas.
 3.	import numpy as np: Importa NumPy, una librería para trabajar con arrays y operaciones matemáticas.
@@ -31,7 +33,10 @@ from IPython.display import display_html
 14.	warnings.filterwarnings('ignore'): Desactiva las advertencias en el código.
 15.	from matplotlib.colors import ListedColormap, LinearSegmentedColormap: Importa los métodos ListedColormap y LinearSegmentedColormap de matplotlib.colors para crear mapas de colores personalizados.
 16.	from IPython.display import display_html: Importa la función display_html de IPython.display, que permite mostrar código HTML en el entorno Jupyter.
+-------------------------------------------------------------------
+
 Cargar y mostrar los archivos CSV
+-------------------------------------------------------------------
 for dirname, _, filenames in os.walk('/content/data_'):
     for filename in filenames:        
         print(os.path.join(dirname, filename))
@@ -39,13 +44,16 @@ for dirname, _, filenames in os.walk('/content/data_'):
         no_ext = no_ext.replace(" ", "_")
         no_ext = no_ext.replace("-", "_")
         globals()[no_ext] = pd.read_csv(os.path.join(dirname, filename))
+-------------------------------------------------------------------
 •	os.walk('/content/data_'): Recorre el directorio /content/data_ y sus subdirectorios, devolviendo las rutas de los archivos.
 •	for filename in filenames: Itera sobre todos los archivos encontrados en el directorio.
 •	print(os.path.join(dirname, filename)): Imprime la ruta completa del archivo CSV.
 •	no_ext = f'{os.path.splitext(filename)[0]}_df': Obtiene el nombre del archivo sin su extensión y le añade el sufijo _df.
 •	no_ext = no_ext.replace(" ", "_").replace("-", "_"): Sustituye los espacios y guiones por guiones bajos en el nombre del archivo.
 •	globals()[no_ext] = pd.read_csv(os.path.join(dirname, filename)): Lee el archivo CSV y lo convierte en un DataFrame de Pandas, guardándolo con el nombre no_ext (una variable global).
+
 Función para mostrar información sobre el DataFrame
+-------------------------------------------------------------------
 def df_info(df, name="Default"): 
     print(clr.S+f"=== {name} ==="+clr.E)
     if not hasattr(df, 'shape'):
@@ -56,11 +64,14 @@ def df_info(df, name="Default"):
     print(clr.S+"Columnas:"+clr.E, list(df.columns), "\n")
     display_html(df.tail())
     print("\n")
+-------------------------------------------------------------------
 •	df_info(df, name="Default"): Función que muestra información sobre el DataFrame df, como su tamaño (filas y columnas), valores faltantes y las primeras filas.
 •	format(df.shape[0], ","): Muestra el número de filas con formato de miles.
 •	df.isna().sum().sum(): Cuenta la cantidad total de valores faltantes en el DataFrame.
 •	display_html(df.tail()): Muestra las últimas filas del DataFrame en formato HTML en un entorno Jupyter.
+
 Resumen del DataFrame
+-------------------------------------------------------------------
 def summary(df):
     print(f'data shape: {df.shape}')
     summ = pd.DataFrame(df.dtypes, columns=['data type'])
@@ -85,43 +96,56 @@ def summary(df):
 
     display_html(summ)
     print("\n")
+-------------------------------------------------------------------
 •	summary(df): Esta función genera un resumen detallado del DataFrame df, incluyendo el número de valores faltantes, la cantidad de valores únicos, y las estadísticas descriptivas.
 •	df.dtypes: Obtiene los tipos de datos de las columnas.
 •	df.isnull().sum().values: Cuenta los valores nulos por columna.
 •	df.nunique().values: Muestra el número de valores únicos por columna.
 •	df.describe(include='all'): Muestra las estadísticas descriptivas, como el mínimo, máximo, promedio, etc.
 •	summ['first value'], summ['second value'], summ['third value']: Muestra los primeros tres valores de las columnas si existen.
+-------------------------------------------------------------------
+
 Conversión de fecha y agregación de transacciones
+-------------------------------------------------------------------
 transactions_df['date'] = pd.to_datetime(transactions_df['date'])
 daily_transactions = transactions_df.groupby('date').transactions.sum().reset_index()
 daily_transactions = daily_transactions.sort_values(by='date', ascending=True)
 daily_transactions['day_of_week'] = daily_transactions['date'].dt.day_name()
 daily_transactions['hover_text'] = daily_transactions['date'].dt.strftime('%Y-%m-%d') + " (" + daily_transactions['day_of_week'] + "): " + daily_transactions['transactions'].astype(str)
+-------------------------------------------------------------------
 •	transactions_df['date'] = pd.to_datetime(transactions_df['date']): Convierte la columna date de transactions_df en formato de fecha y hora.
 •	groupby('date').transactions.sum(): Agrupa las transacciones por fecha y calcula la suma de transacciones para cada día.
 •	reset_index(): Reinicia el índice del DataFrame después de la agregación.
 •	daily_transactions.sort_values(by='date', ascending=True): Ordena las transacciones diarias por fecha.
 •	daily_transactions['day_of_week'] = daily_transactions['date'].dt.day_name(): Agrega una columna con el nombre del día de la semana.
 •	daily_transactions['hover_text']: Crea una columna personalizada con texto para mostrar al pasar el mouse sobre los puntos en un gráfico.
+
 Graficando las transacciones
+-------------------------------------------------------------------
 fig = px.line(daily_transactions, x='date', y='transactions', title='Transactions Trend Across All Stores by Date', hover_name='hover_text')
 fig.show()
 •	px.line(): Crea un gráfico de líneas con Plotly para mostrar las transacciones a lo largo del tiempo.
 •	fig.show(): Muestra el gráfico interactivo.
+
 Procesamiento de datos (Filtrado y creación de características)
+-------------------------------------------------------------------
 copy_train = train_df.copy()
 copy_train['sales'] = copy_train['sales'].round()
 copy_train = copy_train[(copy_train['sales'] >= 0) & (copy_train['sales'] <= 10000)]
 fig = px.histogram(copy_train, x='sales')
 fig.update_layout(title='Ventas agregadas y redondeadas', xaxis_title='Número de ventas', yaxis_title='Frecuencia')
 fig.show()
+-------------------------------------------------------------------
 •	copy_train = train_df.copy(): Hace una copia del DataFrame train_df.
 •	copy_train['sales'] = copy_train['sales'].round(): Redondea los valores de la columna sales al número entero más cercano.
 •	**`copy_train = copy_train[(copy_train['sales'] >= 0) & (copy_train['sales'] <=
 10000)]`**: Filtra las ventas que están entre 0 y 10,000.
 •	px.histogram(copy_train, x='sales'): Crea un histograma de las ventas usando Plotly.
 •	fig.show(): Muestra el histograma interactivo.
+
+
 Función para agregar características relacionadas con las fechas
+-------------------------------------------------------------------
 def add_datepart(df, fldname, drop=True, time=True, sin_cos=False):
     df = df.copy()
     fld = df[fldname]
@@ -141,38 +165,49 @@ def add_datepart(df, fldname, drop=True, time=True, sin_cos=False):
     if drop: 
         df.drop(fldname, axis=1, inplace=True)
     return df
+
 Explicación de la función add_datepart:
+-------------------------------------------------------------------
 •	add_datepart: La función agrega características relacionadas con la fecha, como el año, mes, día, día de la semana, hora, etc., a partir de una columna de tipo datetime.
 •	fld.dt.year, fld.dt.month, fld.dt.weekday, etc.: Extrae información específica de la columna de fecha.
 •	sin_cos=True: Si se establece como verdadero, se agregan columnas de seno y coseno para representar de manera circular las fechas (útil para el modelado).
-El código continúa con más funciones de procesamiento y modelado, pero este es un desglose inicial. ¿Te gustaría que continue con el análisis del resto del código?
-Por supuesto, continuaré desglosando el resto del código:
+
 Preprocesamiento de la variable date en el DataFrame
+-------------------------------------------------------------------
 train_df = add_datepart(train_df, 'date', time=True, sin_cos=True)
 test_df = add_datepart(test_df, 'date', time=True, sin_cos=True)
 •	train_df = add_datepart(train_df, 'date', time=True, sin_cos=True): Aplica la función add_datepart al DataFrame de entrenamiento (train_df) para agregar características adicionales basadas en la columna date. Se agregan las características de hora, minuto, segundo y características sinusoidales de las fechas.
 •	test_df = add_datepart(test_df, 'date', time=True, sin_cos=True): Aplica la misma función al DataFrame de prueba (test_df).
+
 Análisis de correlación
+-------------------------------------------------------------------
 corr = train_df.corr()
 mask = np.triu(np.ones_like(corr, dtype=bool))
 fig = px.imshow(corr, color_continuous_scale='RdBu', zmin=-1, zmax=1)
 fig.update_layout(title="Correlación de características")
 fig.show()
+-------------------------------------------------------------------
 •	train_df.corr(): Calcula la matriz de correlación para todas las características numéricas del DataFrame train_df.
 •	mask = np.triu(np.ones_like(corr, dtype=bool)): Crea una máscara triangular superior para no mostrar los valores de correlación duplicados.
 •	px.imshow(corr, color_continuous_scale='RdBu', zmin=-1, zmax=1): Crea un gráfico de mapa de calor de la correlación de las características utilizando Plotly. Los valores se normalizan en el rango [-1, 1].
 •	fig.update_layout(title="Correlación de características"): Establece el título del gráfico.
 •	fig.show(): Muestra el gráfico.
+
 Preprocesamiento de datos de entrada
+-------------------------------------------------------------------
 X = train_df.drop(columns=['target_column_name']) # Aquí se debe usar el nombre de la columna objetivo
 y = train_df['target_column_name'] # Aquí se debe usar el nombre de la columna objetivo
 •	X = train_df.drop(columns=['target_column_name']): Crea el conjunto de características (X) eliminando la columna objetivo (target_column_name) del DataFrame de entrenamiento.
 •	y = train_df['target_column_name']: Extrae la columna objetivo como y.
+
 Validación cruzada con StratifiedKFold
+-------------------------------------------------------------------
 n_splits = 5
 kf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 •	StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42): Crea un objeto de validación cruzada estratificada con 5 particiones (folds). El parámetro shuffle=True asegura que los datos se barajen antes de dividirlos en los n_splits. random_state=42 establece la semilla para que los resultados sean reproducibles.
+
 Creación y entrenamiento del modelo
+-------------------------------------------------------------------
 params = {
     'objective': 'regression',
     'metric': 'rmse',
@@ -191,7 +226,9 @@ o	'num_leaves': 31: Número de hojas en los árboles.
 o	'learning_rate': 0.05: Tasa de aprendizaje del modelo.
 o	'feature_fraction': 0.9: Porcentaje de características a usar en cada iteración.
 •	model = lgb.LGBMRegressor(**params): Crea un modelo de regresión utilizando LightGBM con los parámetros definidos.
+
 Entrenamiento del modelo con validación cruzada
+-------------------------------------------------------------------
 for fold, (train_idx, valid_idx) in enumerate(kf.split(X, y)):
     X_train, X_valid = X.iloc[train_idx], X.iloc[valid_idx]
     y_train, y_valid = y.iloc[train_idx], y.iloc[valid_idx]
@@ -200,6 +237,7 @@ for fold, (train_idx, valid_idx) in enumerate(kf.split(X, y)):
     y_pred = model.predict(X_valid, num_iteration=model.best_iteration)
     rmse = mean_squared_log_error(y_valid, y_pred) ** 0.5
     print(f'Fold {fold + 1} RMSE: {rmse}')
+-------------------------------------------------------------------
 •	for fold, (train_idx, valid_idx) in enumerate(kf.split(X, y)):: Inicia un bucle para cada una de las divisiones de validación cruzada. kf.split(X, y) genera los índices de las divisiones de entrenamiento y validación.
 •	X_train, X_valid = X.iloc[train_idx], X.iloc[valid_idx]: Divide las características en entrenamiento y validación.
 •	y_train, y_valid = y.iloc[train_idx], y.iloc[valid_idx]: Divide la variable objetivo en entrenamiento y validación.
@@ -207,28 +245,35 @@ for fold, (train_idx, valid_idx) in enumerate(kf.split(X, y)):
 •	y_pred = model.predict(X_valid, num_iteration=model.best_iteration): Realiza predicciones en el conjunto de validación utilizando el mejor número de iteraciones (según el early stopping).
 •	rmse = mean_squared_log_error(y_valid, y_pred) ** 0.5: Calcula el RMSE (Root Mean Squared Error) a partir del Mean Squared Logarithmic Error.
 •	print(f'Fold {fold + 1} RMSE: {rmse}'): Imprime el RMSE para cada fold de la validación cruzada.
+
 Visualización de las predicciones
+-------------------------------------------------------------------
 fig = px.scatter(x=y_valid, y=y_pred, title="Predictions vs Actuals", labels={"x": "Actual", "y": "Predicted"})
 fig.add_shape(type="line", x0=min(y_valid), y0=min(y_valid), x1=max(y_valid), y1=max(y_valid), line=dict(color="Red"))
 fig.show()
 •	px.scatter(x=y_valid, y=y_pred, title="Predictions vs Actuals", labels={"x": "Actual", "y": "Predicted"}): Crea un gráfico de dispersión para comparar las predicciones (y_pred) con los valores reales (y_valid).
 •	fig.add_shape(...): Agrega una línea roja de 45 grados al gráfico, que representa la línea de igualdad entre las predicciones y los valores reales.
 •	fig.show(): Muestra el gráfico.
+
 Ajuste del modelo y predicción final
+-------------------------------------------------------------------
 model.fit(X, y)
 test_predictions = model.predict(test_df.drop(columns=['target_column_name']))
 •	model.fit(X, y): Entrena el modelo con todos los datos de entrenamiento (ahora usando todo X y y).
 •	test_predictions = model.predict(test_df.drop(columns=['target_column_name'])): Realiza predicciones sobre el conjunto de prueba (test_df), excluyendo la columna objetivo.
+
 Guardar las predicciones
+-------------------------------------------------------------------
 submission = pd.DataFrame({"Id": test_df["Id"], "Predicted": test_predictions})
 submission.to_csv('submission.csv', index=False)
 •	submission = pd.DataFrame({"Id": test_df["Id"], "Predicted": test_predictions}): Crea un DataFrame con las predicciones finales y los identificadores de los datos de prueba.
 •	submission.to_csv('submission.csv', index=False): Guarda el DataFrame con las predicciones en un archivo CSV llamado submission.csv.
+
 Conclusión
+-------------------------------------------------------------------
 Este es un desglose completo del código. El flujo general es:
 1.	Cargar y preprocesar los datos.
 2.	Crear nuevas características derivadas de las fechas.
 3.	Entrenar un modelo de LightGBM utilizando validación cruzada.
 4.	Evaluar el rendimiento del modelo y visualizar las predicciones.
 5.	Realizar predicciones sobre los datos de prueba y guardarlas en un archivo CSV.
-Si tienes más preguntas o necesitas aclaraciones sobre alguna parte del código, no dudes en preguntar. ¡Estoy aquí para ayudarte!
